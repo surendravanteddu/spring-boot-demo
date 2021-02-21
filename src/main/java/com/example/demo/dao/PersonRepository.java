@@ -1,6 +1,8 @@
 package com.example.demo.dao;
 
 import com.example.demo.model.Person;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -11,46 +13,49 @@ import java.util.UUID;
 @Repository("PersonRepository")
 public class PersonRepository implements PersonDao {
     private static List<Person> DB = new ArrayList<>();
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public PersonRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public Optional<Person> insertPerson(UUID id, Person person) {
-        DB.add(new Person(id, person.getEmail()));
+        jdbcTemplate.update("insert into book (id, email) values (?, ?)", id, person.getEmail());
         return getById(id);
     }
 
     @Override
     public List<Person> getAll() {
-        return DB;
+        return jdbcTemplate.query("select * from book",
+                (resultSet, i ) -> new Person(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getString("email")
+                )
+        );
     }
 
     @Override
     public Optional<Person> getById(UUID id) {
-        return DB.stream()
-                .filter(item -> item.getId().equals(id))
-                .findFirst();
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                "select * from book where id = ?",
+                (resultSet, i ) -> new Person(
+                        UUID.fromString(resultSet.getString("id")),
+                        resultSet.getString("email")
+                ),
+                id.toString()
+        ));
     }
 
     @Override
     public Optional<Person> updateById(UUID id, Person person) {
-        return getById(id)
-                .map(item -> {
-                    int index = DB.indexOf(item);
-                    System.out.println(index);
-                    if (index >= 0) {
-                        DB.set(index, new Person(id, person.getEmail()));
-                        return DB.get(index);
-                    }
-                    return item;
-                });
+        jdbcTemplate.update("update book set email = ? where id = ?", person.getEmail(), id.toString());
+        return getById(id);
     }
 
     @Override
     public int deleteById(UUID id) {
-        Optional<Person> person = getById(id);
-        if (person.isEmpty()) {
-            return 0;
-        }
-        DB.remove(person.get());
-        return 1;
+        return jdbcTemplate.update("delete from book where id = ?", id.toString());
     }
 }
