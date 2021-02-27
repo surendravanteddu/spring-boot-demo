@@ -5,14 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository("PersonRepository")
 public class PersonRepository implements PersonDao {
-    private static List<Person> DB = new ArrayList<>();
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
