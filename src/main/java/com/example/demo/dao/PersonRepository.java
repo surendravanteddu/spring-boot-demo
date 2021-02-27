@@ -3,6 +3,7 @@ package com.example.demo.dao;
 import com.example.demo.model.Person;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class PersonRepository implements PersonDao {
 
     @Override
     public Optional<Person> insertPerson(UUID id, Person person) {
-        jdbcTemplate.update("insert into book (id, email) values (?, ?)", id, person.getEmail());
+        jdbcTemplate.update("insert into book (id, email, password) values (?, ?)", id, person.getEmail(), person.getPassword());
         return getById(id);
     }
 
